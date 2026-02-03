@@ -215,6 +215,18 @@ button:active {
   box-shadow: 0 3px 8px rgba(124, 77, 255, 0.3);
 }
 
+#answer-area .tile.locked {
+  background: linear-gradient(135deg, #66bb6a, #43a047);
+  border: 2px solid #2e7d32;
+  box-shadow: 0 3px 8px rgba(67, 160, 71, 0.35);
+}
+
+#answer-area .tile.empty-slot {
+  background: rgba(255, 255, 255, 0.5);
+  border: 3px dashed #b39ddb;
+  color: transparent;
+}
+
 #tile-container {
   display: flex;
   flex-wrap: wrap;
@@ -251,6 +263,31 @@ button:active {
   opacity: 0.25;
   pointer-events: none;
   transform: scale(0.9);
+}
+
+.tile.locked {
+  background: linear-gradient(135deg, #66bb6a, #43a047);
+  color: #fff;
+  cursor: default;
+  border: 2px solid #2e7d32;
+  box-shadow: 0 3px 8px rgba(67, 160, 71, 0.35);
+}
+
+.tile.locked:hover {
+  transform: none;
+  box-shadow: 0 3px 8px rgba(67, 160, 71, 0.35);
+}
+
+.tile.empty-slot {
+  background: rgba(255, 255, 255, 0.5);
+  border: 3px dashed #b39ddb;
+  cursor: default;
+  box-shadow: none;
+}
+
+.tile.empty-slot:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .practice-actions {

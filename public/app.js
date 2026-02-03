@@ -7,7 +7,8 @@
   let practiceWords = []; // shuffled copy of words for each round
   let firstTry = true; // whether current word is still on first attempt
   let tiles = [];      // { letter, id, used }
-  let answer = [];     // tile ids in order
+  let answer = [];     // fixed-length array of tile ids (null = empty slot)
+  let lockedSlots = []; // boolean array — true if that position is locked correct
 
   // --- DOM refs ---
   const modeToggle = document.getElementById('mode-toggle');
@@ -158,14 +159,31 @@
     var word = practiceWords[currentIndex];
     speechSynthesis.cancel();
 
-    var utter = new SpeechSynthesisUtterance('Spell the word, ' + word);
     var voice = getPreferredVoice();
-    if (voice) utter.voice = voice;
-    utter.rate = 0.65;
-    utter.pitch = 1.0;
-    utter.volume = 1.0;
 
-    speechSynthesis.speak(utter);
+    // First utterance: the prompt and the word spoken slowly
+    var prompt = new SpeechSynthesisUtterance('Spell the word');
+    if (voice) prompt.voice = voice;
+    prompt.rate = 0.5;
+    prompt.pitch = 1.0;
+    prompt.volume = 1.0;
+
+    var spoken = new SpeechSynthesisUtterance(word);
+    if (voice) spoken.voice = voice;
+    spoken.rate = 0.4;
+    spoken.pitch = 1.0;
+    spoken.volume = 1.0;
+
+    // Second utterance: repeat the whole word once more
+    var repeat = new SpeechSynthesisUtterance(word);
+    if (voice) repeat.voice = voice;
+    repeat.rate = 0.4;
+    repeat.pitch = 1.0;
+    repeat.volume = 1.0;
+
+    speechSynthesis.speak(prompt);
+    speechSynthesis.speak(spoken);
+    speechSynthesis.speak(repeat);
   }
 
   hearBtn.addEventListener('click', speakWord);
@@ -209,7 +227,10 @@
   function startWord() {
     var word = practiceWords[currentIndex];
     tiles = generateTiles(word);
-    answer = [];
+    answer = new Array(word.length);
+    for (var i = 0; i < word.length; i++) { answer[i] = null; }
+    lockedSlots = new Array(word.length);
+    for (var i = 0; i < word.length; i++) { lockedSlots[i] = false; }
     firstTry = true;
     feedback.hidden = true;
     feedback.className = '';
@@ -230,8 +251,14 @@
       div.textContent = t.letter;
       div.addEventListener('click', function () {
         if (t.used) return;
+        // Find next empty, non-locked slot
+        var slot = -1;
+        for (var i = 0; i < answer.length; i++) {
+          if (answer[i] === null && !lockedSlots[i]) { slot = i; break; }
+        }
+        if (slot === -1) return; // all slots filled or locked
         t.used = true;
-        answer.push(t.id);
+        answer[slot] = t.id;
         renderTiles();
         renderAnswer();
       });
@@ -241,24 +268,32 @@
 
   function renderAnswer() {
     answerArea.innerHTML = '';
-    answer.forEach(function (tileId) {
-      var t = tiles[tileId];
-      var div = document.createElement('div');
-      div.className = 'tile';
-      div.textContent = t.letter;
-      div.addEventListener('click', function () {
-        t.used = false;
-        answer = answer.filter(function (id) { return id !== tileId; });
-        renderTiles();
-        renderAnswer();
-      });
-      answerArea.appendChild(div);
-    });
+    for (var i = 0; i < answer.length; i++) {
+      (function (idx) {
+        var div = document.createElement('div');
+        if (answer[idx] !== null) {
+          var t = tiles[answer[idx]];
+          div.className = 'tile' + (lockedSlots[idx] ? ' locked' : '');
+          div.textContent = t.letter;
+          if (!lockedSlots[idx]) {
+            div.addEventListener('click', function () {
+              t.used = false;
+              answer[idx] = null;
+              renderTiles();
+              renderAnswer();
+            });
+          }
+        } else {
+          div.className = 'tile empty-slot';
+        }
+        answerArea.appendChild(div);
+      })(i);
+    }
   }
 
   // --- Submit ---
   submitBtn.addEventListener('click', function () {
-    var attempt = answer.map(function (id) { return tiles[id].letter; }).join('');
+    var attempt = answer.map(function (id) { return id !== null ? tiles[id].letter : ''; }).join('');
     var word = practiceWords[currentIndex];
     feedback.hidden = false;
     if (attempt === word) {
@@ -274,9 +309,15 @@
       firstTry = false;
       feedback.textContent = '\u{1F914} Not quite \u2014 try again!';
       feedback.className = 'incorrect';
-      // Reset tiles and answer so they can retry
-      answer = [];
-      tiles.forEach(function (t) { t.used = false; });
+      // Lock correct positions, release incorrect tiles back to the pool
+      for (var i = 0; i < word.length; i++) {
+        if (answer[i] !== null && tiles[answer[i]].letter === word[i]) {
+          lockedSlots[i] = true;
+        } else if (answer[i] !== null) {
+          tiles[answer[i]].used = false;
+          answer[i] = null;
+        }
+      }
       renderTiles();
       renderAnswer();
     }
