@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spelling Word Practice</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>&#x1F31F; Spelling Word Practice &#x1F31F;</h1>
+    <button id="mode-toggle">&#x1F3AE; Practice Mode</button>
+  </header>
+
+  <!-- Admin / Teacher Mode -->
+  <section id="admin-section">
+    <h2>&#x1F4DA; Word List</h2>
+    <div class="admin-controls">
+      <div class="add-word-row">
+        <input type="text" id="word-input" placeholder="Type a word..." autocomplete="off">
+        <button id="add-word-btn">&#x2795; Add</button>
+      </div>
+      <div class="import-export-row">
+        <button id="export-btn">&#x1F4E5; Export List</button>
+        <label class="file-label">
+          &#x1F4E4; Import List
+          <input type="file" id="import-input" accept=".json" hidden>
+        </label>
+      </div>
+    </div>
+    <ul id="word-list"></ul>
+    <p id="empty-msg">No words added yet. Add some words to get started! &#x1F4DD;</p>
+  </section>
+
+  <!-- Student Practice Mode -->
+  <section id="practice-section" hidden>
+    <div id="progress">&#x1F4D6; Word <span id="current-num">1</span> of <span id="total-num">0</span> &mdash; &#x2B50; Score: <span id="score">0</span></div>
+
+    <button id="hear-btn">&#x1F50A; Hear the Word</button>
+
+    <div id="answer-area"></div>
+
+    <div id="tile-container"></div>
+
+    <div class="practice-actions">
+      <button id="submit-btn">&#x2705; Submit</button>
+      <button id="next-btn" hidden>&#x27A1;&#xFE0F; Next Word</button>
+      <button id="play-again-btn" hidden>&#x1F504; Play Again</button>
+    </div>
+
+    <div id="feedback" hidden></div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>

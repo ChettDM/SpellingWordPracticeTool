@@ -1,0 +1,12 @@
+{
+  "name": "spelling-word-game",
+  "version": "1.0.0",
+  "description": "Spelling word practice game for kids",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
