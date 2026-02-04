@@ -227,6 +227,19 @@ button:active {
   color: transparent;
 }
 
+#answer-area .tile.revealed {
+  background: linear-gradient(135deg, #ffa726, #fb8c00);
+  color: #fff;
+  border: 2px solid #e65100;
+  box-shadow: 0 3px 8px rgba(251, 140, 0, 0.4);
+  cursor: default;
+}
+
+#answer-area .tile.revealed:hover {
+  transform: none;
+  box-shadow: 0 3px 8px rgba(251, 140, 0, 0.4);
+}
+
 #tile-container {
   display: flex;
   flex-wrap: wrap;

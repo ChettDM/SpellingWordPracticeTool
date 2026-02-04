@@ -6,6 +6,8 @@
   let score = 0;
   let practiceWords = []; // shuffled copy of words for each round
   let firstTry = true; // whether current word is still on first attempt
+  let missCount = 0;   // wrong submissions for the current word
+  let advanceOnNext = false; // true = Next goes to new word; false = replay same word
   let tiles = [];      // { letter, id, used }
   let answer = [];     // fixed-length array of tile ids (null = empty slot)
   let lockedSlots = []; // boolean array — true if that position is locked correct
@@ -232,6 +234,8 @@
     lockedSlots = new Array(word.length);
     for (var i = 0; i < word.length; i++) { lockedSlots[i] = false; }
     firstTry = true;
+    missCount = 0;
+    advanceOnNext = false;
     feedback.hidden = true;
     feedback.className = '';
     submitBtn.hidden = false;
@@ -300,45 +304,65 @@
       if (firstTry) {
         score++;
         scoreEl.textContent = score;
+        advanceOnNext = true;
       }
-      feedback.textContent = firstTry ? '\u{1F389} Correct! Great job! \u{2B50}' : '\u{1F44D} Correct! You got it!';
+      feedback.textContent = firstTry ? '\u{1F389} Correct! Great job! \u{2B50}' : '\u{1F44D} Correct! Let\u2019s try that word one more time!';
       feedback.className = 'correct';
       submitBtn.hidden = true;
       nextBtn.hidden = false;
     } else {
       firstTry = false;
-      feedback.textContent = '\u{1F914} Not quite \u2014 try again!';
-      feedback.className = 'incorrect';
-      // Lock correct positions, release incorrect tiles back to the pool
-      for (var i = 0; i < word.length; i++) {
-        if (answer[i] !== null && tiles[answer[i]].letter === word[i]) {
-          lockedSlots[i] = true;
-        } else if (answer[i] !== null) {
-          tiles[answer[i]].used = false;
-          answer[i] = null;
+      missCount++;
+      if (missCount >= 2) {
+        // Fill in the answer area with the correct letters
+        answerArea.innerHTML = '';
+        for (var i = 0; i < word.length; i++) {
+          var div = document.createElement('div');
+          div.className = 'tile revealed';
+          div.textContent = word[i];
+          answerArea.appendChild(div);
         }
+        feedback.textContent = '\u{1F4A1} Here\u2019s the correct spelling! Study it, then try again!';
+        feedback.className = 'incorrect';
+        submitBtn.hidden = true;
+        nextBtn.hidden = false;
+      } else {
+        feedback.textContent = '\u{1F914} Not quite \u2014 try again!';
+        feedback.className = 'incorrect';
+        // Lock correct positions, release incorrect tiles back to the pool
+        for (var i = 0; i < word.length; i++) {
+          if (answer[i] !== null && tiles[answer[i]].letter === word[i]) {
+            lockedSlots[i] = true;
+          } else if (answer[i] !== null) {
+            tiles[answer[i]].used = false;
+            answer[i] = null;
+          }
+        }
+        renderTiles();
+        renderAnswer();
       }
-      renderTiles();
-      renderAnswer();
     }
   });
 
   // --- Next ---
   nextBtn.addEventListener('click', function () {
-    currentIndex++;
-    if (currentIndex >= practiceWords.length) {
-      tileContainer.innerHTML = '';
-      answerArea.innerHTML = '';
-      feedback.hidden = false;
-      feedback.className = 'correct';
-      feedback.textContent = '\u{1F3C6} All done! You got ' + score + ' out of ' + practiceWords.length + ' correct on the first try! \u{1F31F}';
-      submitBtn.hidden = true;
-      nextBtn.hidden = true;
-      hearBtn.hidden = true;
-      playAgainBtn.hidden = false;
-    } else {
-      startWord();
+    if (advanceOnNext) {
+      currentIndex++;
+      if (currentIndex >= practiceWords.length) {
+        tileContainer.innerHTML = '';
+        answerArea.innerHTML = '';
+        feedback.hidden = false;
+        feedback.className = 'correct';
+        feedback.textContent = '\u{1F3C6} All done! You got ' + score + ' out of ' + practiceWords.length + ' correct on the first try! \u{1F31F}';
+        submitBtn.hidden = true;
+        nextBtn.hidden = true;
+        hearBtn.hidden = true;
+        playAgainBtn.hidden = false;
+        return;
+      }
     }
+    // Replay same word (or start the next one) with fresh tiles
+    startWord();
   });
 
   // --- Play Again ---
